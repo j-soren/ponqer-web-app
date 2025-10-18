@@ -3,6 +3,16 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Theme system CSS custom properties */
+  --theme-bg-primary: #0f172a;
+  --theme-bg-secondary: #7c3aed;
+  --theme-bg-accent: #06b6d4;
+  --theme-color-scheme: dark;
+  --theme-button-radius: 0.75rem;
+  --theme-button-size: 0.875rem 2rem;
+  --theme-animations: running;
+  --theme-glow-opacity: 1;
 }
 
 @theme inline {
@@ -23,4 +33,71 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Theme system utility classes */
+.theme-bg-gradient {
+  background: linear-gradient(135deg, var(--theme-bg-primary), var(--theme-bg-secondary), var(--theme-bg-accent));
+}
+
+.theme-bg-solid {
+  background: var(--theme-bg-primary);
+}
+
+.theme-bg-animated {
+  background: linear-gradient(270deg, var(--theme-bg-primary), var(--theme-bg-secondary), var(--theme-bg-accent), var(--theme-bg-primary));
+  background-size: 800% 800%;
+  animation: themeGradientShift 8s ease infinite;
+  animation-play-state: var(--theme-animations);
+}
+
+.theme-button {
+  border-radius: var(--theme-button-radius);
+  padding: var(--theme-button-size);
+}
+
+.theme-button-hover-grow:hover {
+  transform: scale(1.05);
+}
+
+.theme-button-hover-glow:hover {
+  box-shadow: 0 10px 25px rgba(59, 130, 246, 0.25);
+}
+
+.theme-button-pulse {
+  animation: themePulse 2s infinite;
+  animation-play-state: var(--theme-animations);
+}
+
+.theme-glow {
+  opacity: var(--theme-glow-opacity);
+}
+
+.theme-particles {
+  opacity: var(--theme-glow-opacity);
+}
+
+/* Animation keyframes */
+@keyframes themeGradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes themePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.02); }
+}
+
+/* Responsive theme adjustments */
+@media (max-width: 768px) {
+  .theme-button {
+    padding: 0.75rem 1.5rem;
+  }
+}
+
+/* Animation control */
+.theme-animations-disabled * {
+  animation-play-state: paused !important;
+  transition: none !important;
 }
