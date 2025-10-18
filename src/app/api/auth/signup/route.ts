@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { dbOperations } from '../../../lib/database';
+import { dbOperations } from '@/app/lib/database-neon';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user already exists
-    const existingUser = dbOperations.getUser(email);
+    const existingUser = await dbOperations.getUser(email);
     if (existingUser) {
       return NextResponse.json(
         { success: false, error: 'User already exists with this email' },
@@ -29,8 +29,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create new user
-    const newUser = dbOperations.createUser(email);
+    // Create new user with hashed password
+    const newUser = await dbOperations.createUser(email, password);
     
     return NextResponse.json({
       success: true,

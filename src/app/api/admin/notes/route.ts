@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { dbOperations } from '../../../lib/database';
+import { dbOperations } from '@/app/lib/database-neon';
 
 async function isAdminUser(email: string): Promise<boolean> {
-  const user = dbOperations.getUser(email);
+  const user = await dbOperations.getUser(email);
   return Boolean(user?.is_admin);
 }
 
 export async function GET(request: NextRequest) {
   try {
+    
     const userEmail = request.headers.get('user-email');
     const { searchParams } = new URL(request.url);
     const targetUserEmail = searchParams.get('user_email');
@@ -22,10 +23,10 @@ export async function GET(request: NextRequest) {
     let notes;
     if (targetUserEmail) {
       // Get notes for specific user
-      notes = dbOperations.getNotes(targetUserEmail);
+      notes = await dbOperations.getNotes(targetUserEmail);
     } else {
       // Get all notes
-      notes = dbOperations.getAllNotes();
+      notes = await dbOperations.getAllNotes();
     }
 
     return NextResponse.json({
@@ -44,6 +45,7 @@ export async function GET(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    
     const userEmail = request.headers.get('user-email');
     const { noteId } = await request.json();
     
@@ -61,7 +63,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const deleted = dbOperations.adminDeleteNote(noteId);
+    const deleted = await dbOperations.adminDeleteNote(noteId);
     
     if (deleted) {
       return NextResponse.json({ success: true });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 interface User {
@@ -41,7 +41,7 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
   // Edit limits state
   const [editingLimits, setEditingLimits] = useState<{ email: string; maxNotes: number; maxNoteLength: number } | null>(null);
 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -55,14 +55,14 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
       } else {
         setError(data.error || 'Failed to fetch users');
       }
-    } catch (error) {
+    } catch {
       setError('Failed to fetch users');
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.email]);
 
-  const fetchAllNotes = async () => {
+  const fetchAllNotes = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
@@ -76,12 +76,12 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
       } else {
         setError(data.error || 'Failed to fetch notes');
       }
-    } catch (error) {
+    } catch {
       setError('Failed to fetch notes');
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.email]);
 
   const fetchUserNotes = async (userEmail: string) => {
     setLoading(true);
@@ -126,7 +126,7 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
       } else {
         alert(data.error || 'Failed to delete user');
       }
-    } catch (error) {
+    } catch {
       alert('Failed to delete user');
     }
   };
@@ -158,7 +158,7 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
       } else {
         alert(data.error || 'Failed to delete note');
       }
-    } catch (error) {
+    } catch {
       alert('Failed to delete note');
     }
   };
@@ -181,7 +181,7 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
       } else {
         alert(data.error || 'Failed to update limits');
       }
-    } catch (error) {
+    } catch {
       alert('Failed to update limits');
     }
   };
@@ -192,7 +192,7 @@ export default function AdminPanel({ onClose }: AdminPanelProps) {
     } else {
       fetchAllNotes();
     }
-  }, [activeTab]);
+  }, [activeTab, fetchUsers, fetchAllNotes]);
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">

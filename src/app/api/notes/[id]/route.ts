@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { dbOperations } from '@/app/lib/database';
+import { dbOperations } from '@/app/lib/database-neon';
 
 // GET /api/notes/[id] - Get specific note
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    
     const { searchParams } = new URL(request.url);
     const userEmail = searchParams.get('user_email');
-    const noteId = parseInt(params.id);
+    const resolvedParams = await params;
+    const noteId = parseInt(resolvedParams.id);
 
     if (!userEmail) {
       return NextResponse.json(
@@ -25,7 +27,7 @@ export async function GET(
       );
     }
 
-    const note = dbOperations.getNote(noteId, userEmail);
+    const note = await dbOperations.getNote(noteId, userEmail);
     
     if (!note) {
       return NextResponse.json(
@@ -47,12 +49,14 @@ export async function GET(
 // PUT /api/notes/[id] - Update note
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    
     const body = await request.json();
     const { title, content, user_email, tags } = body;
-    const noteId = parseInt(params.id);
+    const resolvedParams = await params;
+    const noteId = parseInt(resolvedParams.id);
 
     if (!user_email) {
       return NextResponse.json(
@@ -75,7 +79,7 @@ export async function PUT(
       );
     }
 
-    const updatedNote = dbOperations.updateNote(noteId, {
+    const updatedNote = await dbOperations.updateNote(noteId, {
       title: title.trim(),
       content: content.trim(),
       tags: tags || ''
@@ -101,12 +105,14 @@ export async function PUT(
 // DELETE /api/notes/[id] - Delete note
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    
     const { searchParams } = new URL(request.url);
     const userEmail = searchParams.get('user_email');
-    const noteId = parseInt(params.id);
+    const resolvedParams = await params;
+    const noteId = parseInt(resolvedParams.id);
 
     if (!userEmail) {
       return NextResponse.json(
@@ -122,7 +128,7 @@ export async function DELETE(
       );
     }
 
-    const deleted = dbOperations.deleteNote(noteId, userEmail);
+    const deleted = await dbOperations.deleteNote(noteId, userEmail);
 
     if (!deleted) {
       return NextResponse.json(

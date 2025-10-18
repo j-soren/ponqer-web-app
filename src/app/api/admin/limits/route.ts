@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { dbOperations } from '../../../lib/database';
+import { dbOperations } from '@/app/lib/database-neon';
 
 async function isAdminUser(email: string): Promise<boolean> {
-  const user = dbOperations.getUser(email);
+  const user = await dbOperations.getUser(email);
   return Boolean(user?.is_admin);
 }
 
 export async function PUT(request: NextRequest) {
   try {
+    
     const userEmail = request.headers.get('user-email');
     const { targetEmail, maxNotes, maxNoteLength } = await request.json();
     
@@ -26,7 +27,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Check if target user exists
-    const targetUser = dbOperations.getUser(targetEmail);
+    const targetUser = await dbOperations.getUser(targetEmail);
     if (!targetUser) {
       return NextResponse.json(
         { success: false, error: 'Target user not found' },
@@ -34,7 +35,7 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    const updatedLimits = dbOperations.updateUserLimits(targetEmail, maxNotes, maxNoteLength);
+    const updatedLimits = await dbOperations.updateUserLimits(targetEmail, maxNotes, maxNoteLength);
     
     return NextResponse.json({
       success: true,

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from './AuthProviderWrapper';
 import { useSettings } from '../context/SettingsContext';
 import { useRouter } from 'next/navigation';
 import AdminPanel from './AdminPanel';
@@ -177,8 +177,24 @@ export default function WelcomePage() {
                 </button>
               </div>
 
-              {/* Settings Button */}
+              {/* Profile Button */}
               <div className={`transform transition-all duration-700 delay-700 ${showOptions ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-75'}`}>
+                <button 
+                  onClick={() => router.push('/profile')}
+                  className="group relative px-8 py-6 bg-gradient-to-r from-green-500 to-green-700 text-white font-semibold rounded-2xl shadow-2xl hover:shadow-green-500/25 transition-all duration-300 hover:scale-105 hover:from-green-600 hover:to-green-800 min-w-[200px]">
+                  <div className="flex flex-col items-center gap-3">
+                    <svg className="w-8 h-8 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span className="text-lg">Profile</span>
+                    <span className="text-sm opacity-80">Edit Account</span>
+                  </div>
+                  <div className="absolute inset-0 bg-white/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                </button>
+              </div>
+
+              {/* Settings Button */}
+              <div className={`transform transition-all duration-700 delay-800 ${showOptions ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-75'}`}>
                 <button 
                   onClick={handleSettings}
                   className="group relative px-8 py-6 bg-gradient-to-r from-cyan-500 to-cyan-700 text-white font-semibold rounded-2xl shadow-2xl hover:shadow-cyan-500/25 transition-all duration-300 hover:scale-105 hover:from-cyan-600 hover:to-cyan-800 min-w-[200px]">
@@ -196,7 +212,7 @@ export default function WelcomePage() {
 
               {/* Admin Manage Button */}
               {user?.isAdmin && (
-                <div className={`transform transition-all duration-700 delay-900 ${showOptions ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-75'}`}>
+                <div className={`transform transition-all duration-700 delay-1000 ${showOptions ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-75'}`}>
                   <button 
                     onClick={handleManage}
                     className="group relative px-8 py-6 bg-gradient-to-r from-red-500 to-red-700 text-white font-semibold rounded-2xl shadow-2xl hover:shadow-red-500/25 transition-all duration-300 hover:scale-105 hover:from-red-600 hover:to-red-800 min-w-[200px]">

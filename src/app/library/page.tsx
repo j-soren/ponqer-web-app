@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/app/context/AuthContext';
+import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/app/components/AuthProviderWrapper';
 import { useRouter } from 'next/navigation';
 
 interface Note {
@@ -26,15 +26,7 @@ export default function LibraryPage() {
   const [editContent, setEditContent] = useState('');
   const [editTags, setEditTags] = useState('');
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/');
-      return;
-    }
-    fetchNotes();
-  }, [isAuthenticated, router, user]);
-
-  const fetchNotes = async (search?: string) => {
+  const fetchNotes = useCallback(async (search?: string) => {
     if (!user?.email) return;
 
     try {
@@ -54,7 +46,15 @@ export default function LibraryPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.email]);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/');
+      return;
+    }
+    fetchNotes();
+  }, [isAuthenticated, router, user, fetchNotes]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -164,6 +164,15 @@ export default function LibraryPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
               New Note
+            </button>
+            <button
+              onClick={() => router.push('/profile')}
+              className="p-2 text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+              title="Edit Profile"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
             </button>
             <span className="text-sm text-white/60">{user?.email}</span>
           </div>

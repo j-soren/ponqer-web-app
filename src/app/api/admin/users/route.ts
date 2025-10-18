@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { dbOperations } from '../../../lib/database';
+import { dbOperations } from '@/app/lib/database-neon';
 
 async function isAdminUser(email: string): Promise<boolean> {
-  const user = dbOperations.getUser(email);
+  const user = await dbOperations.getUser(email);
   return Boolean(user?.is_admin);
 }
 
 export async function GET(request: NextRequest) {
   try {
+    
     const userEmail = request.headers.get('user-email');
     
     if (!userEmail || !await isAdminUser(userEmail)) {
@@ -17,16 +18,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const users = dbOperations.getAllUsers();
-    const usersWithCounts = users.map(user => {
-      const noteCount = dbOperations.getUserNoteCount(user.email);
-      const limits = dbOperations.getUserLimits(user.email);
-      return {
-        ...user,
-        noteCount,
-        limits: limits || { max_notes: 100, max_note_length: 300 }
-      };
-    });
+    // Use optimized single query to get all user details
+    const usersWithCounts = await dbOperations.getAllUsersWithDetails();
 
     return NextResponse.json({
       success: true,
@@ -44,6 +37,7 @@ export async function GET(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    
     const userEmail = request.headers.get('user-email');
     const { targetEmail } = await request.json();
     
@@ -62,7 +56,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Prevent admin from deleting themselves or other admins
-    const targetUser = dbOperations.getUser(targetEmail);
+    const targetUser = await dbOperations.getUser(targetEmail);
     if (Boolean(targetUser?.is_admin)) {
       return NextResponse.json(
         { success: false, error: 'Cannot delete admin users' },
@@ -70,7 +64,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    const deleted = dbOperations.deleteUser(targetEmail);
+    const deleted = await dbOperations.deleteUser(targetEmail);
     
     if (deleted) {
       return NextResponse.json({ success: true });

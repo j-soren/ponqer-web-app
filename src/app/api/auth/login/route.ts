@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { dbOperations } from '../../../lib/database';
+import { dbOperations, verifyPassword } from '@/app/lib/database-neon';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,27 +14,34 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if user exists
-    const existingUser = dbOperations.getUser(email);
+    const existingUser = await dbOperations.getUser(email);
     if (!existingUser) {
       return NextResponse.json(
-        { success: false, error: 'User not found. Please sign up first.' },
-        { status: 404 }
+        { success: false, error: 'Invalid credentials' },
+        { status: 401 }
       );
     }
 
-    // In a real app, you would verify the password hash here
-    // For demo purposes, we'll accept any non-empty password
-    if (password.length > 0) {
-      return NextResponse.json({
-        success: true,
-        user: { email: existingUser.email, is_admin: existingUser.is_admin }
-      });
+    // Verify password
+    if (!existingUser.password_hash) {
+      return NextResponse.json(
+        { success: false, error: 'Account setup incomplete. Please contact admin.' },
+        { status: 401 }
+      );
     }
 
-    return NextResponse.json(
-      { success: false, error: 'Invalid credentials' },
-      { status: 401 }
-    );
+    const isValidPassword = verifyPassword(password, existingUser.password_hash);
+    if (!isValidPassword) {
+      return NextResponse.json(
+        { success: false, error: 'Invalid credentials' },
+        { status: 401 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      user: { email: existingUser.email, is_admin: existingUser.is_admin }
+    });
 
   } catch (error) {
     console.error('Login error:', error);

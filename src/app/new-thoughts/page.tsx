@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/app/context/AuthContext';
+import { useAuth } from '@/app/components/AuthProviderWrapper';
 import { useRouter } from 'next/navigation';
 
 export default function NewThoughtsPage() {

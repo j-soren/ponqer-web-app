@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { dbOperations } from '@/app/lib/database';
+import { dbOperations } from '@/app/lib/database-neon';
 
 // GET /api/notes - Get all notes for user
 export async function GET(request: NextRequest) {
   try {
+    
     const { searchParams } = new URL(request.url);
     const userEmail = searchParams.get('user_email');
     const search = searchParams.get('search');
@@ -15,17 +16,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Ensure user exists
-    let user = dbOperations.getUser(userEmail);
+    // Check if user exists and is authenticated
+    const user = await dbOperations.getUser(userEmail);
     if (!user) {
-      user = dbOperations.createUser(userEmail);
+      return NextResponse.json(
+        { error: 'User not found. Please sign up first.' },
+        { status: 401 }
+      );
     }
 
     let notes;
     if (search && search.trim()) {
-      notes = dbOperations.searchNotes(userEmail, search.trim());
+      notes = await dbOperations.searchNotes(userEmail, search.trim());
     } else {
-      notes = dbOperations.getNotes(userEmail);
+      notes = await dbOperations.getNotes(userEmail);
     }
 
     return NextResponse.json({ notes, success: true });
@@ -41,6 +45,7 @@ export async function GET(request: NextRequest) {
 // POST /api/notes - Create new note
 export async function POST(request: NextRequest) {
   try {
+    
     const body = await request.json();
     const { title, content, user_email, tags } = body;
 
@@ -51,19 +56,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Ensure user exists
-    let user = dbOperations.getUser(user_email);
+    // Check if user exists and is authenticated
+    const user = await dbOperations.getUser(user_email);
     if (!user) {
-      user = dbOperations.createUser(user_email);
+      return NextResponse.json(
+        { error: 'User not found. Please sign up first.' },
+        { status: 401 }
+      );
     }
 
     // Check user limits (skip for admin users)
     if (!user.is_admin) {
-      const userLimits = dbOperations.getUserLimits(user_email);
+      const userLimits = await dbOperations.getUserLimits(user_email);
       const limits = userLimits || { max_notes: 100, max_note_length: 300 };
       
       // Check note count limit
-      const currentNoteCount = dbOperations.getUserNoteCount(user_email);
+      const currentNoteCount = await dbOperations.getUserNoteCount(user_email);
       if (currentNoteCount >= limits.max_notes) {
         return NextResponse.json(
           { error: `You have reached your limit of ${limits.max_notes} notes` },
@@ -80,7 +88,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const note = dbOperations.createNote({
+    const note = await dbOperations.createNote({
       title: title.trim(),
       content: content.trim(),
       user_email,
