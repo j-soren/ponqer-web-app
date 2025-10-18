@@ -498,6 +498,12 @@ export const dbOperations = {
       const adminEmail = 'admin@mywebapp.com';
       if (email === adminEmail) return false; // Can't delete admin
       
+      // Check if user exists and is not admin before deletion
+      const user = await sql`SELECT email, is_admin FROM users WHERE email = ${email}`;
+      if (user.length === 0 || user[0].is_admin) {
+        return false;
+      }
+      
       // Delete in correct order to avoid foreign key constraints
       await sql`DELETE FROM notes WHERE user_email = ${email}`;
       await sql`DELETE FROM user_limits WHERE user_email = ${email}`;
@@ -508,7 +514,18 @@ export const dbOperations = {
         RETURNING id
       `;
       
-      return result.length > 0;
+      const success = result.length > 0;
+      
+      // Invalidate all relevant caches if deletion was successful
+      if (success) {
+        invalidateCache(getCacheKey('USER', email));
+        invalidateCache(getCacheKey('NOTES', email));
+        invalidateCache(getCacheKey('LIMITS', email));
+        invalidateCache('ALL_USERS');
+        invalidateCache('ALL_USERS_DETAILS');
+      }
+      
+      return success;
     } catch (error) {
       console.error('Error deleting user:', error);
       return false;

@@ -55,8 +55,23 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
+    // Prevent admin from deleting themselves
+    if (targetEmail === userEmail) {
+      return NextResponse.json(
+        { success: false, error: 'Cannot delete your own account' },
+        { status: 400 }
+      );
+    }
+
     // Prevent admin from deleting themselves or other admins
     const targetUser = await dbOperations.getUser(targetEmail);
+    if (!targetUser) {
+      return NextResponse.json(
+        { success: false, error: 'User not found' },
+        { status: 404 }
+      );
+    }
+    
     if (Boolean(targetUser?.is_admin)) {
       return NextResponse.json(
         { success: false, error: 'Cannot delete admin users' },
@@ -67,11 +82,11 @@ export async function DELETE(request: NextRequest) {
     const deleted = await dbOperations.deleteUser(targetEmail);
     
     if (deleted) {
-      return NextResponse.json({ success: true });
+      return NextResponse.json({ success: true, message: 'User deleted successfully' });
     } else {
       return NextResponse.json(
-        { success: false, error: 'User not found or could not be deleted' },
-        { status: 404 }
+        { success: false, error: 'Failed to delete user. User may not exist or could not be removed from database.' },
+        { status: 500 }
       );
     }
 
