@@ -257,6 +257,10 @@ export const dbOperations = {
         }
       }
       
+      // Invalidate admin caches when a new user is created
+      invalidateCache('ALL_USERS');
+      invalidateCache('ALL_USERS_DETAILS');
+      
       return user;
     } catch (error) {
       console.error('Error creating user:', error);
@@ -297,6 +301,10 @@ export const dbOperations = {
         // Update cache with new data
         const cacheKey = getCacheKey('USER', email);
         setCache(cacheKey, user, CACHE_TTL.USER);
+        
+        // Also invalidate admin lists since user data changed
+        invalidateCache('ALL_USERS');
+        invalidateCache('ALL_USERS_DETAILS');
       }
       return user;
     } catch (error) {
@@ -564,7 +572,14 @@ export const dbOperations = {
           updated_at = CURRENT_TIMESTAMP
         RETURNING *
       `;
-      return result[0] as UserLimits;
+      
+      const limits = result[0] as UserLimits;
+      
+      // Invalidate relevant caches
+      invalidateCache(getCacheKey('LIMITS', userEmail));
+      invalidateCache('ALL_USERS_DETAILS');
+      
+      return limits;
     } catch (error) {
       console.error('Error updating user limits:', error);
       throw error;
